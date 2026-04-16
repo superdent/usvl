@@ -1,16 +1,16 @@
 # Projektstand: Psychische Gesundheit in Tech-Berufen (Unsupervised Learning)
 
 ## 1. SETUP
-- [ ] GitHub Repository aufsetzen
-- [ ] Python-Projekt anlegen (venv, requirements.txt)
-- [ ] Datensatz von Kaggle herunterladen (mental-health-in-tech-2016)
-- [ ] Dokumentation Setup
+- [x] GitHub Repository aufsetzen
+- [x] Python-Projekt anlegen (venv, requirements.txt)
+- [x] Datensatz von Kaggle herunterladen (mental-health-in-tech-2016)
+- [x] Dokumentation Setup
 
 ## 2. EXPLORATIVE DATENANALYSE (EDA)
-- [ ] Datensatz laden und Struktur untersuchen (Spalten, Datentypen, Dimensionen)
-- [ ] Fehlende Werte identifizieren und dokumentieren
-- [ ] Deskriptive Statistiken erstellen
-- [ ] Explorative Visualisierungen (Verteilungen, Häufigkeiten)
+- [x] Datensatz laden und Struktur untersuchen (Spalten, Datentypen, Dimensionen)
+- [x] Fehlende Werte identifizieren und dokumentieren
+- [x] Deskriptive Statistiken erstellen
+- [x] Explorative Visualisierungen (Verteilungen, Häufigkeiten)
 - [ ] Dokumentation EDA
 
 ## 3. VORVERARBEITUNG / FEATURE ENGINEERING
