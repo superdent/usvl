@@ -151,6 +151,64 @@ Ausreißer (< 18 oder > 80): 5 | Werte: [3, 15, 17, 99, 323]
 ![Altersverteilung](eda_figures/dist_age.png)
 ## Gender
 Unique Rohwerte: 70 | Fehlende Werte: 3
+Unique nach Normalisierung (lowercase/strip): 54
+
+| Normalisiert | Rohwerte |
+|-------------|----------|
+| afab | `AFAB` |
+| agender | `Agender` |
+| androgynous | `Androgynous` |
+| bigender | `Bigender` |
+| cis female | `Cis female ` |
+| cis male | `Cis male`, `cis male`, `Cis Male` |
+| cis man | `cis man` |
+| cis-woman | `Cis-woman` |
+| cisdude | `cisdude` |
+| cisgender female | `Cisgender Female` |
+| dude | `Dude` |
+| enby | `Enby` |
+| f | `F`, `f` |
+| fem | `fem` |
+| female | `Female`, `female`, `female `, `Female `, ` Female` |
+| female (props for making this a freeform field, though) | `Female (props for making this a freeform field, though)` |
+| female assigned at birth | `Female assigned at birth ` |
+| female or multi-gender femme | `Female or Multi-Gender Femme` |
+| female-bodied; no feelings about gender | `female-bodied; no feelings about gender` |
+| female/woman | `female/woman` |
+| fluid | `Fluid` |
+| fm | `fm` |
+| genderfluid | `Genderfluid` |
+| genderfluid (born female) | `Genderfluid (born female)` |
+| genderflux demi-girl | `Genderflux demi-girl` |
+| genderqueer | `genderqueer`, `Genderqueer` |
+| genderqueer woman | `genderqueer woman` |
+| human | `Human`, `human` |
+| i identify as female. | `I identify as female.` |
+| i'm a man why didn't you make this a drop down question. you should of asked sex? and i would of answered yes please. seriously how much text can this take? | `I'm a man why didn't you make this a drop down question. You should of asked sex? And I would of answered yes please. Seriously how much text can this take? ` |
+| m | `M`, `m` |
+| mail | `mail` |
+| male | `Male`, `male`, `Male `, `male `, `MALE` |
+| male (cis) | `Male (cis)` |
+| male (trans, ftm) | `Male (trans, FtM)` |
+| male 9:1 female, roughly | `male 9:1 female, roughly` |
+| male. | `Male.` |
+| male/genderqueer | `Male/genderqueer` |
+| malr | `Malr` |
+| man | `man`, `Man` |
+| mtf | `mtf` |
+| m| | `M|` |
+| nb masculine | `nb masculine` |
+| non-binary | `non-binary` |
+| nonbinary | `Nonbinary` |
+| none of your business | `none of your business` |
+| other | `Other` |
+| other/transfeminine | `Other/Transfeminine` |
+| queer | `Queer` |
+| sex is male | `Sex is male` |
+| transgender woman | `Transgender woman` |
+| transitioned, m2f | `Transitioned, M2F` |
+| unicorn | `Unicorn` |
+| woman | `Woman`, `woman` |
 ![Gender-Verteilung (Top 15)](eda_figures/dist_gender.png)
 ## Geographische Verteilung
 Verschiedene Länder: 53 | Anteil USA: 58.6%
