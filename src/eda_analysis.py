@@ -1,14 +1,23 @@
 import io
 import pandas as pd
 import numpy as np
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
-import seaborn as sns
 from pathlib import Path
+from openpyxl import Workbook
+from openpyxl.styles import Font, Alignment
 
-# Pfade
-DATA_PATH = Path("data/raw/mental-health-in-tech-2016_20161114.csv")
-FIGURES_DIR = Path("documentation/eda_figures")
-REPORT_PATH = Path("documentation/eda_report.md")
+plt.style.use('seaborn-v0_8-whitegrid')
+
+# ============================================================
+# Konfiguration
+# ============================================================
+
+PROJECT_ROOT = Path(".")
+DATA_PATH    = PROJECT_ROOT / "data/raw/mental-health-in-tech-2016_20161114.csv"
+FIGURES_DIR  = PROJECT_ROOT / "documentation/eda_figures"
+REPORT_PATH  = PROJECT_ROOT / "documentation/eda_report.md"
 
 FIGURES_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -17,30 +26,23 @@ pd.set_option('display.max_columns', None)
 pd.set_option('display.max_colwidth', 80)
 plt.rcParams['figure.figsize'] = (10, 6)
 plt.rcParams['figure.dpi'] = 100
-sns.set_style('whitegrid')
 
-report_lines = []
+# Spalten die geplottet werden (Abschnitt 11)
+PLOT_COLUMNS = [
+    ('self_employed',             'Selbstständig?'),
+    ('company_size',              'Unternehmensgröße'),
+    ('mh_benefits',               'MH-Benefits vom Arbeitgeber?'),
+    ('leave_difficulty',          'Wie schwer ist es, MH-Urlaub zu nehmen?'),
+    ('neg_consequences_employer', 'Negative Konsequenzen bei AG?'),
+    ('comfortable_coworkers',     'MH-Gespräch mit Kollegen ok?'),
+    ('comfortable_supervisor',    'MH-Gespräch mit Vorgesetzten ok?'),
+    ('current_disorder',          'Aktuelle MH-Störung?'),
+    ('past_disorder',             'Frühere MH-Störung?'),
+    ('family_history',            'Familiengeschichte MH?'),
+    ('sought_treatment',          'Behandlung gesucht?'),
+    ('remote_work',               'Remote-Arbeit?'),
+]
 
-def h(text, level=2):
-    report_lines.append(f"{'#' * level} {text}")
-
-def p(text):
-    report_lines.append(str(text))
-
-def fig(filename, caption=""):
-    rel = f"eda_figures/{filename}"
-    report_lines.append(f"![{caption}]({rel})")
-
-
-# -----------------------------------------------------------------------
-# 1. Import
-# -----------------------------------------------------------------------
-df = pd.read_csv(DATA_PATH)
-print(f"Datensatz geladen: {df.shape[0]} Zeilen, {df.shape[1]} Spalten")
-
-# -----------------------------------------------------------------------
-# 2. Spaltennamen kürzen
-# -----------------------------------------------------------------------
 COLUMN_ALIASES = {
     "Are you self-employed?": "self_employed",
     "How many employees does your company or organization have?": "company_size",
@@ -106,15 +108,121 @@ COLUMN_ALIASES = {
     "Do you work remotely?": "remote_work",
 }
 
+# ============================================================
+# Hilfsfunktionen
+# ============================================================
+
+report_lines = []
+
+def h(text, level=2):
+    report_lines.append(f"{'#' * level} {text}")
+
+def p(text):
+    report_lines.append(str(text))
+
+def fig(filename, caption=""):
+    report_lines.append(f"![{caption}](eda_figures/{filename})")
+
+
+def get_next_filename(directory, prefix, extension):
+    """Erzeugt naechsten freien Dateinamen mit laufender Nummer."""
+    directory = Path(directory)
+    directory.mkdir(parents=True, exist_ok=True)
+    existing = list(directory.glob(f"{prefix}_*.{extension}"))
+    nums = []
+    for f in existing:
+        try:
+            nums.append(int(f.stem.split('_')[-1]))
+        except ValueError:
+            pass
+    next_num = max(nums) + 1 if nums else 1
+    return directory / f"{prefix}_{next_num:02d}.{extension}"
+
+
+def detect_gender_issues(df):
+    """Gibt normalisierte Gender-Rohwerte zurueck (lowercase/strip)."""
+    normalized = {}
+    for val in df['gender'].dropna().unique():
+        key = str(val).strip().lower()
+        normalized.setdefault(key, []).append(val)
+    return normalized
+
+
+def write_excel(df):
+    """Schreibt Spalten-Uebersicht in Excel."""
+    output_path = get_next_filename(PROJECT_ROOT / "documentation", "eda_analysis", "xlsx")
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Spalten-Uebersicht"
+
+    bold   = Font(bold=True, size=11, name='Arial')
+    normal = Font(size=11, name='Arial')
+    left   = Alignment(horizontal='left')
+
+    freetext_cols = [
+        "interview_physical_why", "interview_mental_why", "diagnosed_conditions",
+        "believed_conditions", "professional_diagnosis_detail", "work_position",
+    ]
+
+    headers = ["Spalte", "Typ", "Datentyp", "Unique", "Fehlend", "Fehlend %", "Haeufigster Wert", "Anzahl"]
+    for ci, val in enumerate(headers, 1):
+        c = ws.cell(row=1, column=ci, value=val)
+        c.font = bold
+        c.alignment = left
+
+    for ri, col in enumerate(df.columns, 2):
+        s = df[col]
+        vc = s.value_counts()
+        top_val = vc.index[0] if not vc.empty else ""
+        top_cnt = int(vc.iloc[0]) if not vc.empty else ""
+        if col == "age":
+            col_type = "numeric"
+        elif col in freetext_cols:
+            col_type = "freetext"
+        else:
+            col_type = "categorical"
+        values = [
+            col,
+            col_type,
+            str(s.dtype),
+            s.nunique(),
+            int(s.isnull().sum()),
+            round(s.isnull().sum() / len(df) * 100, 1),
+            str(top_val),
+            top_cnt,
+        ]
+        for ci, val in enumerate(values, 1):
+            c = ws.cell(row=ri, column=ci, value=val)
+            c.font = normal
+            c.alignment = left
+
+    for ci in range(1, len(headers) + 1):
+        ws.column_dimensions[ws.cell(row=1, column=ci).column_letter].width = max(
+            len(str(ws.cell(row=1, column=ci).value)) + 4, 14
+        )
+
+    wb.save(output_path)
+    print(f"Excel gespeichert: {output_path}")
+
+
+# ============================================================
+# 1. Import
+# ============================================================
+df = pd.read_csv(DATA_PATH)
+print(f"Datensatz geladen: {df.shape[0]} Zeilen, {df.shape[1]} Spalten")
+
+# ============================================================
+# 2. Spaltennamen kürzen
+# ============================================================
 rename_map = {k: v for k, v in COLUMN_ALIASES.items() if k in df.columns}
 df.rename(columns=rename_map, inplace=True)
 
 if "Why or why not?.1" in df.columns:
     df.rename(columns={"Why or why not?.1": "interview_mental_why"}, inplace=True)
 
-# -----------------------------------------------------------------------
+# ============================================================
 # 3. Datenstruktur
-# -----------------------------------------------------------------------
+# ============================================================
 h("Datenstruktur", 2)
 p(f"**Zeilen:** {df.shape[0]}  \n**Spalten:** {df.shape[1]}")
 p("```")
@@ -123,9 +231,9 @@ df.info(buf=buf)
 p(buf.getvalue())
 p("```")
 
-# -----------------------------------------------------------------------
+# ============================================================
 # 4. Fehlende Werte
-# -----------------------------------------------------------------------
+# ============================================================
 missing = df.isnull().sum()
 missing_pct = (missing / len(df) * 100).round(1)
 missing_df = pd.DataFrame({
@@ -153,21 +261,22 @@ p("| Spalte | Fehlend | Prozent |")
 p("|--------|---------|---------|")
 for col, row in missing_df[missing_df['Fehlend'] > 0].iterrows():
     p(f"| {col} | {int(row['Fehlend'])} | {row['Prozent']}% |")
-p(f"\nSelbstständige: {n_self_employed} | Fehlende Werte bei `company_size`: {n_missing_company_size} | Übereinstimmung: {n_self_employed == n_missing_company_size}")
+p("")
+p(f"Selbstständige: {n_self_employed} | Fehlende Werte bei `company_size`: {n_missing_company_size} | Übereinstimmung: {n_self_employed == n_missing_company_size}")
 fig("missing_values.png", "Fehlende Werte pro Spalte")
 
-# -----------------------------------------------------------------------
+# ============================================================
 # 5. Datentypen
-# -----------------------------------------------------------------------
+# ============================================================
 h("Datentypen", 2)
 p("```")
 p(str(df.dtypes.value_counts()))
 p(f"\nGesamtzahl Spalten: {len(df.columns)}")
 p("```")
 
-# -----------------------------------------------------------------------
+# ============================================================
 # 6. Alter
-# -----------------------------------------------------------------------
+# ============================================================
 outliers = df[(df['age'] < 18) | (df['age'] > 80)]
 ages_clean = df['age'][(df['age'] >= 18) & (df['age'] <= 80)]
 
@@ -196,12 +305,15 @@ p("| | Wert |")
 p("|--|------|")
 for idx, val in age_desc.items():
     p(f"| {idx} | {val:.2f} |")
-p(f"\nAusreißer (< 18 oder > 80): {len(outliers)} | Werte: {sorted(int(x) for x in outliers['age'].unique())}")
+p("")
+p(f"Ausreißer (< 18 oder > 80): {len(outliers)} | Werte: {sorted(int(x) for x in outliers['age'].unique())}")
 fig("dist_age.png", "Altersverteilung")
 
-# -----------------------------------------------------------------------
+# ============================================================
 # 7. Gender
-# -----------------------------------------------------------------------
+# ============================================================
+gender_map = detect_gender_issues(df)
+
 fig_gender, ax_gender = plt.subplots(figsize=(10, 6))
 top_gender = df['gender'].value_counts().head(15)
 ax_gender.barh(range(len(top_gender)), top_gender.values, color='coral', alpha=0.7)
@@ -216,11 +328,18 @@ plt.close()
 
 h("Gender", 2)
 p(f"Unique Rohwerte: {df['gender'].nunique()} | Fehlende Werte: {df['gender'].isnull().sum()}")
+p(f"Unique nach Normalisierung (lowercase/strip): {len(gender_map)}")
+p("")
+p("| Normalisiert | Rohwerte |")
+p("|-------------|----------|")
+for key in sorted(gender_map.keys()):
+    vals = ", ".join(f"`{v}`" for v in gender_map[key])
+    p(f"| {key} | {vals} |")
 fig("dist_gender.png", "Gender-Verteilung (Top 15)")
 
-# -----------------------------------------------------------------------
+# ============================================================
 # 8. Geographische Verteilung
-# -----------------------------------------------------------------------
+# ============================================================
 fig_country, ax_country = plt.subplots(figsize=(10, 6))
 countries = df['country_live'].value_counts().head(15)
 ax_country.barh(range(len(countries)), countries.values, color='steelblue', alpha=0.7)
@@ -237,9 +356,9 @@ h("Geographische Verteilung", 2)
 p(f"Verschiedene Länder: {df['country_live'].nunique()} | Anteil USA: {(df['country_live'] == 'United States of America').sum() / len(df) * 100:.1f}%")
 fig("dist_country_live.png", "Top 15 Länder (Wohnort)")
 
-# -----------------------------------------------------------------------
+# ============================================================
 # 9. Aktuelle Störung vs. Behandlung gesucht
-# -----------------------------------------------------------------------
+# ============================================================
 ct = pd.crosstab(df['current_disorder'], df['sought_treatment'], margins=True)
 
 h("Aktuelle MH-Störung vs. Behandlung gesucht", 2)
@@ -249,9 +368,9 @@ p("|--" + "|--" * len(cols) + "|")
 for idx, row in ct.iterrows():
     p("| " + str(idx) + " | " + " | ".join(str(row[c]) for c in cols) + " |")
 
-# -----------------------------------------------------------------------
+# ============================================================
 # 10. Negative Konsequenzen bei Gespräch mit AG
-# -----------------------------------------------------------------------
+# ============================================================
 fig_neg, axes_neg = plt.subplots(1, 2, figsize=(14, 5))
 
 for i, (col, title) in enumerate([
@@ -273,28 +392,13 @@ plt.close()
 h("Negative Konsequenzen bei Gespräch mit Arbeitgeber", 2)
 fig("dist_neg_consequences_employer.png", "Negative Konsequenzen MH vs. körperliche Gesundheit")
 
-# -----------------------------------------------------------------------
+# ============================================================
 # 11. Weitere Verteilungen
-# -----------------------------------------------------------------------
-plot_cols = [
-    ('self_employed', 'Selbstständig?'),
-    ('company_size', 'Unternehmensgröße'),
-    ('mh_benefits', 'MH-Benefits vom Arbeitgeber?'),
-    ('leave_difficulty', 'Wie schwer ist es, MH-Urlaub zu nehmen?'),
-    ('neg_consequences_employer', 'Negative Konsequenzen bei AG?'),
-    ('comfortable_coworkers', 'MH-Gespräch mit Kollegen ok?'),
-    ('comfortable_supervisor', 'MH-Gespräch mit Vorgesetzten ok?'),
-    ('current_disorder', 'Aktuelle MH-Störung?'),
-    ('past_disorder', 'Frühere MH-Störung?'),
-    ('family_history', 'Familiengeschichte MH?'),
-    ('sought_treatment', 'Behandlung gesucht?'),
-    ('remote_work', 'Remote-Arbeit?'),
-]
-
+# ============================================================
 fig_dist, axes_dist = plt.subplots(4, 3, figsize=(16, 20))
 axes_dist = axes_dist.flatten()
 
-for i, (col, title) in enumerate(plot_cols):
+for i, (col, title) in enumerate(PLOT_COLUMNS):
     if col in df.columns:
         counts = df[col].value_counts()
         axes_dist[i].barh(range(len(counts)), counts.values, color='steelblue', alpha=0.7)
@@ -310,12 +414,17 @@ plt.close()
 h("Weitere Verteilungen", 2)
 fig("dist_overview.png", "Verteilung ausgewählter Variablen")
 
-# -----------------------------------------------------------------------
+# ============================================================
 # Report schreiben
-# -----------------------------------------------------------------------
+# ============================================================
 with open(REPORT_PATH, 'w', encoding='utf-8') as f:
     f.write("# EDA Report – OSMI Mental Health in Tech Survey 2016\n\n")
     for line in report_lines:
         f.write(line + "\n")
 
 print(f"Report gespeichert: {REPORT_PATH}")
+
+# ============================================================
+# Excel
+# ============================================================
+write_excel(df)
