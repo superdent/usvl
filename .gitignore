@@ -1,2 +1,4 @@
+.idea/
 .venv/
 data/raw/
+__pycache__/
