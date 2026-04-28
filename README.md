@@ -29,7 +29,11 @@ data/processed/              # Verarbeitete Datensätze
 documentation/               # Berichte und Abbildungen
   eda_report.md              # Bericht zur explorativen Datenanalyse
   preprocessing_report.md    # Bericht zur Vorverarbeitung
-  eda_figures/               # Alle erzeugten Abbildungen
+  figures/                   # Alle erzeugten Abbildungen
+    eda/                     # Abbildungen aus EDA
+    feature_selection/       # Abbildungen aus Feature-Auswahl
+    dimension_reduction/     # Abbildungen aus Dimensionsreduktion
+    clustering/              # Abbildungen aus Clustering
 src/                         # Python-Scripts
 ```
 
