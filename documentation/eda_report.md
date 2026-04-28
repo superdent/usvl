@@ -125,7 +125,7 @@ memory usage: 705.4 KB
 | gender | 3 | 0.2% |
 
 Selbstständige: 287 | Fehlende Werte bei `company_size`: 287 | Übereinstimmung: True
-![Fehlende Werte pro Spalte](eda_figures/missing_values.png)
+![Fehlende Werte pro Spalte](figures/eda/missing_values.png)
 ## Datentypen
 ```
 str        56
@@ -148,7 +148,7 @@ Gesamtzahl Spalten: 63
 | max | 323.00 |
 
 Ausreißer (< 18 oder > 80): 5 | Werte: [3, 15, 17, 99, 323]
-![Altersverteilung](eda_figures/dist_age.png)
+![Altersverteilung](figures/eda/dist_age.png)
 ## Gender
 Unique Rohwerte: 70 | Fehlende Werte: 3
 Unique nach Normalisierung (lowercase/strip): 54
@@ -209,10 +209,10 @@ Unique nach Normalisierung (lowercase/strip): 54
 | transitioned, m2f | `Transitioned, M2F` |
 | unicorn | `Unicorn` |
 | woman | `Woman`, `woman` |
-![Gender-Verteilung (Top 15)](eda_figures/dist_gender.png)
+![Gender-Verteilung (Top 15)](figures/eda/dist_gender.png)
 ## Geographische Verteilung
 Verschiedene Länder: 53 | Anteil USA: 58.6%
-![Top 15 Länder (Wohnort)](eda_figures/dist_country_live.png)
+![Top 15 Länder (Wohnort)](figures/eda/dist_country_live.png)
 ## Aktuelle MH-Störung vs. Behandlung gesucht
 | | 0 | 1 | All |
 |--|--|--|--|
@@ -221,6 +221,6 @@ Verschiedene Länder: 53 | Anteil USA: 58.6%
 | Yes | 59 | 516 | 575 |
 | All | 594 | 839 | 1433 |
 ## Negative Konsequenzen bei Gespräch mit Arbeitgeber
-![Negative Konsequenzen MH vs. körperliche Gesundheit](eda_figures/dist_neg_consequences_employer.png)
+![Negative Konsequenzen MH vs. körperliche Gesundheit](figures/eda/dist_neg_consequences_employer.png)
 ## Weitere Verteilungen
-![Verteilung ausgewählter Variablen](eda_figures/dist_overview.png)
+![Verteilung ausgewählter Variablen](figures/eda/dist_overview.png)

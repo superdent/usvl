@@ -15,7 +15,7 @@ COLUMN_ALIASES = {
     "Would you feel comfortable discussing a mental health disorder with your direct supervisor(s)?": "comfortable_supervisor",
     "Do you feel that your employer takes mental health as seriously as physical health?": "employer_takes_mh_serious",
     "Have you heard of or observed negative consequences for co-workers who have been open about mental health issues in your workplace?": "observed_neg_consequences",
-    "Do you have medical coverage (private insurance or state-provided) which includes treatment of  mental health issues?": "medical_coverage",
+    "Do you have medical coverage (private insurance or state-provided) which includes treatment of  mental health issues?": "medical_coverage",
     "Do you know local or online resources to seek help for a mental health disorder?": "know_resources",
     "If you have been diagnosed or treated for a mental health disorder, do you ever reveal this to clients or business contacts?": "reveal_clients",
     "If you have revealed a mental health issue to a client or business contact, do you believe this has impacted you negatively?": "reveal_clients_impact",
